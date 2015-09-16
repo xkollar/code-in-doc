@@ -1,5 +1,6 @@
 module Main where
 
+import Control.Arrow (right)
 import Control.Exception.Base (bracket_)
 import Control.Monad
 import System.Directory
@@ -9,7 +10,7 @@ import System.FilePath
 import System.IO
 import System.IO.Temp (withSystemTempDirectory)
 import System.Process
-import Text.Pandoc
+import Text.Pandoc (Attr, Block, Block(CodeBlock), queryWith, def, readMarkdown)
 
 rules :: [(String, FilePath -> IO ())]
 rules =
@@ -62,6 +63,6 @@ process (MyFile (_, s, m) content) =
 main :: IO ()
 main = do
     [filename] <- getArgs
-    files <- fmap (queryWith getCode . readMarkdown def) $ readFile filename
+    Right files <- fmap (right (queryWith getCode) . readMarkdown def) $ readFile filename
     hSetBuffering stdout NoBuffering
     withSystemTempDirectory "doc-build-test" $ \ d -> inDirectory d $ mapM_ process files
